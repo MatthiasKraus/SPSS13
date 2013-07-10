@@ -472,37 +472,27 @@ Wird für einen gezeichneten Graphen benutzt, damit man nur einen Knoten anwähl
 \subsection{Übersicht}
 Um neue Funktionalitäten von JGraphX hinzufügen zu können, werden grundlegende Änderungen am ISGCI vorgenommen. Dies umfasst das Einführen einer neuen Struktur, in der die Graphinformationen (Knoten (Graphklassen) und Kanten (Inklusionen)) gespeichert werden, Veränderungen des Canvas, auf dem der Graph gezeichnet wird und Veränderungen am GUI, um die neuen Funktionen für den User sichtbar zu machen.
 \subsection{ISGCIGraph.java}
-Wir erstellen eine neue Klasse ISGCIGraph im neuen Package .teo.isgci.jgraphx, welche die Klasse mxGraph(JGraphX) erweitert und als Schnittstelle zwischen ISGCI und JgraphX fungiert.\\
+Wir erstellen eine neue Klasse ISGCIGraph im neuen Package .teo.isgci.jgraphx, welche die Klasse mxGraph(JGraphX) erweitert und als Schnittstelle zwischen ISGCI und JGraphX fungiert.\\
 Die Erweiterung der Klasse \G{mxGraph} ermöglicht uns die Benutzung der Layout-Funktionen der JGraphX-Bibliothek. Für das Layout wird die Klasse "`mxHierarchicalLayout.java"' verwendet, die das Aussehen des Graphen(über Ranking) verbessert. 
- Durch die Zusammenführung des \G{DirectedGraph}(JGraphT) und \G{mxGraph}(JGraphX) sorgen wir dafür, dass keine doppelte Datenhaltung vorliegt, denn alle Knoten und Kanten werden in JGraphX-Cells abgelegt. Sie sind weiterhin wie in einem \G{DirectedGraph} erreichbar. Bei der Implementierung ist besonders darauf zu achten, dass der Zugriff auf Kanten und Knoten des Graphen effizient umgesetzt wird, damit \G{Userexperience} und \G{Usability} nicht unter langen Wartezeiten leidet.\\\\
-Durch die Implementierung des \G{DirectedGraph}-Interfaces und setzen der Instanzvariablen "`protected boolean multigraph = false"' und "`allowLoops = false;"' des \G{mxGraph}s können wir den neuen \G{ISGCIGraph} wie den "`SimpleDirectedGraph"' der bisherigen Implementation verwenden, da sie die selben Eigenschaften (gerichtet, keine Kreise und keine Multikanten) haben. Diese Funktionen beinhalten unter anderem: 
+Um einerseits die Darstellung der Informationen durch \G{JGraphT} zu erhalten, werden weiterhin eine Repräsentation des Graphen im \G{(Simple)DirectedGraph} verwaltet. Außerdem werden die Nodeviews und Edgeviews durch das entsprechende Pendant in \G{JGraphX}, also Knoten und Kanten, ersetzt. Damit hat man also den asymptotisch gleichen Aufwand der Datenhaltung. Diese Knoten und Kanten in der \G{JGraphX}-Darstellung werden nun als Cells (\G{\texttt{extends Object}}) verwaltet. Sie sind somit weiterhin im \G{DirectedGraph} erreichbar. Bei der Implementierung ist besonders darauf zu achten, dass der Zugriff auf Kanten und Knoten des Graphen effizient umgesetzt wird, damit \G{Userexperience} und \G{Usability} nicht unter langen Wartezeiten leidet.\\\\
+Die Eigenschaften des ISGCIGraphs werden so gesetzt, dass sie denen des vorigen \G{SimpleDirectedGraphs} entsprechen, sodass gilt: "`protected boolean multigraph = false"' und "`allowLoops = false;"' (gerichtet, keine Kreise und keine Multikanten) haben. Diese Funktionen beinhalten unter anderem: 
 {\small
 \begin{itemize}
 \item Erstellen des Graphen aus der heruntergeladenen \G{ISGCI.xml}
 \item Mittels Walkern, aus dem \G{.teo.jgrapht}-Package, den Graphen traversieren
 \item Suche nach Problemklassen mittels des \G{.teo.problem}-Packages
-\item Export des Graphen
-\item Zeichnen des Graphen\\
+\item Export(.svg) des Graphen verläuft über JGraphX, die grundlegende Funktionalität zur Verfügung stellt
+\item Zeichnen des Graphen auf dem von JGraphX mitgelieferten Canvas\\
 \end{itemize}
 }
 \ \\
-Dazu müssen folgende Klassen angepasst werden, die einen \G{SimpleDirectedGraph} verwenden:
+Dazu müssen folgende Klassen angepasst werden:
 {\small 
 \begin{description}
-\item FindISG.java
-\item Algo.java
-\item DataSet.java
-\item ForbiddenClass.java
-\item BFSWalker.java
-\item Deducer.java
-\item DFSWalker.java
-\item GAlg.java
 \item GraphCanvas.java (hier finden noch weitere, grundlegende Änderungen statt, s.u.)
 \item GraphView.java (hier finden noch weitere, grundl. Änderungen statt, s.u.)
 \item ISGCIGraphCanvas.java (hier finden noch weitere, grundl. Änderungen statt, s.u.)
 \item ISGCIMainFrame.java (hier finden noch weitere, grundl. Änderungen statt, s.u.)
-\item LandMarks.java
-\item ISGCIWriter.java
 \end{description}}\ \\
  Durch das Erweitern des \G{mxGraph} erhalten wir folgende Funktionalität: 
  \begin{itemize}
@@ -513,7 +503,7 @@ Dazu müssen folgende Klassen angepasst werden, die einen \G{SimpleDirectedGraph
  \end{itemize}
 \subsection{ISGCI.Gui}
 \paragraph{Grundlegende Änderungen}\ \\
-Die bereits existierende Klasse \G{ISGCIGraphCanvas.java} aus dem ISGCI Projekt wird so verändert, dass sie die Funktionalität der \G{mxGraphics2Dcanvas.java} realisiert. Die Klasse \G{NodeView.java} wird durch eine Klasse \G{NodeCell.java} ersetzt, diese erweitert die Klasse \G{mxCell.java}. Die Klasse \G{NodeCell} enthält Methoden, welche die NodeView Funktionalitäten dahingehend umsetzen, dass sie die Parameter in das für die \G{NodeCell} entsprechende Format überführen. Weiterhin wird eine Klasse \G{EdgeCell.java} die bisherige Klasse \G{EdgeView.java} ersetzen. Hier werden jedoch nun \G{Inclusions} gespeichert. 
+Die bereits existierende Klasse \G{ISGCIGraphCanvas.java} aus dem ISGCI Projekt wird so verändert, dass sie die Funktionalität der \G{mxGraphics2Dcanvas.java} realisiert. Das Zeichnen des Graphen wird so erreicht, dass die Walker, die mit JGraphT über einen SimpleDirectedGraph laufen die notwendigen Knoten und Kanten auslesen und dann mit den entsprechenden Eigenschaften dem zu zeichnenden Graphen hinzufügen. Darauf wird anschließend das Layout berechnet und gezeichnet. Die Klassen \G{NodeView.java}  und \G{EdgeView.java} finden somit keine Verwendung mehr für das Layout oder zum zeichnen und können bedenkenlos entfernt werden, nachdem alle Verbindungen ersetzt wurden. 
 %hier Bildchen einfügen
 JGraphX übernimmt mit dem ISGCIGraph, den angehängten \G{mxCells}, \G{mxCellStates} und der \G{ISGCIGraphCanvas} selbstständig das Zeichnen des Graphen.
 
@@ -521,12 +511,12 @@ JGraphX übernimmt mit dem ISGCIGraph, den angehängten \G{mxCells}, \G{mxCellSt
 \paragraph{Detail-Sidebar} \ \\
 Es wird eine Klasse \G{Sidebar.java} im Package \G{teo.isgci.gui} implementiert, welche Details zu einem ausgewählten Knoten enthält. Diese Klasse erweitert die Klasse \G{JPanel}. Die anzuzeigenden Informationen werden von der Homepage geparst. Bei Programmstart ist die \G{Sidebar} ausgeblendet. Es werden folgende Optionen zum Anzeigen der Sidebar implementiert:
 \begin{itemize}
-\item Menu-Bar-Parent \G{View}; \G{Details visible}, welche in der \G{ISGCIMainFrame} Klasse implementiert wird. 
-\item Kontext-Menü; \G{Show Details}, vgl. Kontextmenü. 
-\item Menu-Bar-Parent \G{Selected}, \G{Show Details}, welche in der \G{ISGCIMainFrame} Klasse implementiert wird. 
+\item Menu-Bar-Parent \G{View}; \G{Sidebar visible}, welche in der \G{ISGCIMainFrame} Klasse implementiert wird(Checkmark). 
+\item Kontext-Menü; \G{Show sidebar}, vgl. Kontextmenü. 
+\item Menu-Bar-Parent \G{Selected}, \G{Show sidebar}, welche in der \G{ISGCIMainFrame} Klasse implementiert wird. 
 \end{itemize} 
-Es existiert ein Button, um die Sidebar auszublenden. Das ist zudem auch über das Menu-Bar-Parent \G{View}, \G{Details visible} möglich.\\
-Um die Graphclasses.org-Homepage zu parsen wird die Java-Bibliothek \G{Jsoup} benutzt. In der Klasse Sidebar werden die entsprechenden vorgeparsten Informationen von der Homepage in eine passende HTML-Form gebracht. 
+Es existiert ein Button, um die Sidebar ein-/ auszublenden, falls sie geschlossen/geöffnet ist. Das ist zudem auch über das Menu-Bar-Parent \G{View}, \G{Sidebar visible} möglich.\\
+Um die Graphclasses.org-Homepage zu parsen wird die Java-Bibliothek \G{Jsoup} benutzt. In der Klasse \G{Sidebar} werden die entsprechenden vorgeparsten Informationen von der Homepage in eine passende HTML-Form gebracht. 
 
 
 
@@ -534,7 +524,7 @@ Um die Graphclasses.org-Homepage zu parsen wird die Java-Bibliothek \G{Jsoup} be
 
 \paragraph{Knoten Verschieben}\ \\ 
 
-Wird wie bisher in der ISGCIGraphCanvas.java Klasse realisiert.
+Wird wie bisher in der ISGCIGraphCanvas.java Klasse nur jetzt über Standardfunktionalitäten aus der Bibliothek JGraphX realisiert.
 
 \paragraph{Zoom (Mausrad)}\ \\ 
 
@@ -552,21 +542,21 @@ Wird in der ISGCIGraphCanvas.java realisiert. Es wird über den MouseListener im
 
  Der ISGCINodeTooltip greift auf Daten in der Klasse DataSet.java aus dem Package teo.isgci.db zu. Er enthält alle alternativen, ungekürzten Namen des Nodes (der aktuelle Name inbegriffen) in Listenform.
 
-\paragraph{Scrolling}\ \\ 
+\paragraph{Scrolling/Panning}\ \\ 
 In der ISGCIMainFrame.java Klasse existiert bereits eine Methode createCanvasPanel(), welche den Canvas und die Scrollbalken unten und rechts des Canvas erzeugt. Um sich darin auch per click and pull bewegen zu können erstellen wir eine weitere Methode in dieser Klasse, die das MousePressed Event auswertet, wenn es nicht auf einem Knoten liegt und den Viewport anpasst.
 
 \paragraph{Kontextmenü}\ \\ 
-NodePopup.java ist eine bereits existierende Klasse die das Kontextmenü bereitstellt, das bei einem Rechtsklick, auf einen Knoten, aufgerufen wird. Dieses wird von uns um die folgenden Punkte erweitert. 
+NodePopup.java ist eine bereits existierende Klasse die das Kontextmenü bereitstellt, das bei einem Rechtsklick auf einen Knoten, aufgerufen wird. Dieses wird von uns um die folgenden Punkte erweitert. 
 %(Dieser Punkt wird in der 2. Version des SDD ausgeführt)
 
 \paragraph{Kontextmenü Superklassen}\ \\ 
-In NodePopup.java werden zwei neue Items durch anpassen des Konstruktors der NodePopup-Klasse implementiert und die dazugehörige Funktionalität durch anpassen der actionPerformed() Methode aufgerufen. actionPerformed() ruft dabei Informationen über den angewählten Knoten und dessen Superklassen ab und zeichnet das Ergebnis (die Knoten) auf den Canvas, hierfür erstellen wir eine Methode "`private Object[] getSupernodes(Object cell)"'. Dafür rufen wir "`mxGraph.getAllEdges(Object cell)"' mit selbigem Knoten auf, suchen aus dem Ergebnis alle Vorgängerknoten heraus (rekursiv für Kanten, die eine Kante als Vorgänger haben) und wenden auf diese "`mxGraph.toggleCells( boolean show, Object[] cells)"' an.
+In NodePopup.java werden zwei neue Items durch anpassen des Konstruktors der NodePopup-Klasse implementiert und die dazugehörige Funktionalität durch Anpassen der actionPerformed() Methode aufgerufen. actionPerformed() ruft dabei Informationen über den angewählten Knoten und dessen Superklassen ab und zeichnet das Ergebnis (die Knoten) auf den Canvas, hierfür erstellen wir eine Methode "`private Object[] getSupernodes(Object cell)"'. Dafür rufen wir "`mxGraph.getAllEdges(Object cell)"' mit selbigem Knoten auf, suchen aus dem Ergebnis alle Vorgängerknoten heraus (rekursiv für Kanten, die eine Kante als Vorgänger haben) und wenden auf diese "`mxGraph.toggleCells( boolean show, Object[] cells)"' an.
 
 \paragraph{Kontextmenü Subklassen}\ \\ 
-In NodePopup.java werden zwei neue Items durch anpassen des Konstruktors der NodePopup-Klasse implementiert und die dazugehörige Funktionalität durch anpassen der actionPerformed() Methode aufgerufen. actionPerformed() ruft dabei Informationen über den angewählten Knoten und dessen Subklassen ab und zeichnet das Ergebnis (die Knoten) auf den Canvas, hierfür erstellen wir eine Methode "`private Object[] getSubnodes(Object cell)"'. Dafür rufen wir "`mxGraph.getAllEdges(Object cell)"' mit selbigem Knoten auf, suchen aus dem Ergebnis alle Nachfolgerknoten heraus (rekursiv für Kanten, die eine Kante als Nachfolgerknoten haben) und wenden auf diese "`mxGraph.toggleCells( boolean show, Object[] cells)"' an.
+In NodePopup.java werden zwei neue Items durch anpassen des Konstruktors der NodePopup-Klasse implementiert und die dazugehörige Funktionalität durch Anpassen der actionPerformed() Methode aufgerufen. actionPerformed() ruft dabei Informationen über den angewählten Knoten und dessen Subklassen ab und zeichnet das Ergebnis (die Knoten) auf den Canvas, hierfür erstellen wir eine Methode "`private Object[] getSubnodes(Object cell)"'. Dafür rufen wir "`mxGraph.getAllEdges(Object cell)"' mit selbigem Knoten auf, suchen aus dem Ergebnis alle Nachfolgerknoten heraus (rekursiv für Kanten, die eine Kante als Nachfolgerknoten haben) und wenden auf diese "`mxGraph.toggleCells( boolean show, Object[] cells)"' an.
 
 \paragraph{Kontextmenü Nachbarn}\ \\ 
-In NodePopup.java wird ein neues Item durch anpassen des Konstruktors der NodePopup-Klasse implementiert und die dazugehörige Funktionalität durch anpassen der actionPerformed() Methode aufgerufen. actionPerformed() ruft dabei Informationen über den angewählten Knoten und dessen Nachbarn ab und zeichnet das Ergebnis (die Knoten) auf den Canvas, hierfür erstellen wir eine Methode "`private Object[] getNeighbour(Object cell)"'. Dafür rufen wir "`mxGraph.getAllEdges(Object cell)"' mit selbigem Knoten auf, und wenden auf diese "`mxGraph.toggleCells( boolean show, Object[] cells)"' an. Das Ergebnis der Aktion ist folglich das nicht-rekursive Einblenden aller Nachbarknoten eines Knoten.
+In NodePopup.java wird ein neues Item durch anpassen des Konstruktors der NodePopup-Klasse implementiert und die dazugehörige Funktionalität durch Anpassen der actionPerformed() Methode aufgerufen. actionPerformed() ruft dabei Informationen über den angewählten Knoten und dessen Nachbarn ab und zeichnet das Ergebnis (die Knoten) auf den Canvas, hierfür erstellen wir eine Methode "`private Object[] getNeighbour(Object cell)"'. Dafür rufen wir "`mxGraph.getAllEdges(Object cell)"' mit selbigem Knoten auf, und wenden auf diese "`mxGraph.toggleCells( boolean show, Object[] cells)"' an. Das Ergebnis der Aktion ist folglich das nicht-rekursive Einblenden aller Nachbarknoten eines Knoten.
 
 \subsection{Experimental Features}
 Folgende Funktionen werden ggf. optional zur Verfügung stehen.
